@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Yellow.ai Chatbot</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+    #chat { border:1px solid #ccc; padding:10px; height:300px; overflow-y:scroll; background:#fff; margin-bottom:10px; }
+    #message, #projectName, #email, #password { padding:8px; margin:5px; width:70%; }
+    button { padding:8px; margin:5px; }
+    .msg.user { color:blue; }
+    .msg.bot { color:green; }
+  </style>
+</head>
+<body>
+  <h2>Yellow.ai Chatbot</h2>
+
+  <div id="auth">
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <button id="signupBtn">Sign Up</button>
+    <button id="loginBtn">Login</button>
+  </div>
+
+  <input type="text" id="projectName" placeholder="Project name" />
+  <button id="createProject">Create Project</button>
+  <button id="listProjects">List Projects</button>
+
+  <div id="chat"></div>
+  <input type="text" id="message" placeholder="Type your message..." />
+  <button id="send">Send</button>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const messageInput = document.getElementById("message");
+    const sendBtn = document.getElementById("send");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const signupBtn = document.getElementById("signupBtn");
+    const loginBtn = document.getElementById("loginBtn");
+    const projectInput = document.getElementById("projectName");
+    const createProjectBtn = document.getElementById("createProject");
+    const listProjectsBtn = document.getElementById("listProjects");
+
+    let token = localStorage.getItem("jwtToken") || null;
+
+    function appendMessage(sender, text){
+      const div = document.createElement("div");
+      div.className = "msg " + sender;
+      div.textContent = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function signup(){
+      const email = emailInput.value, password = passwordInput.value;
+      const res = await fetch("http://localhost:3000/signup", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+    }
+
+    async function login(){
+      const email = emailInput.value, password = passwordInput.value;
+      const res = await fetch("http://localhost:3000/login", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if(data.token){
+        token = data.token;
+        localStorage.setItem("jwtToken", token);
+        alert("Login successful");
+      } else alert(data.error || "Login failed");
+    }
+
+    async function createProject(){
+      if(!token) return alert("Login first");
+      const name = projectInput.value;
+      if(!name) return alert("Enter project name");
+      const res = await fetch("http://localhost:3000/projects", {
+        method:"POST", headers:{"Content-Type":"application/json", "Authorization":"Bearer "+token},
+        body: JSON.stringify({ projectName: name })
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+    }
+
+    async function listProjects(){
+      if(!token) return alert("Login first");
+      const res = await fetch("http://localhost:3000/projects", {
+        headers: { "Authorization":"Bearer "+token }
+      });
+      const data = await res.json();
+      alert("Projects: " + (data.projects || []).join(", "));
+    }
+
+    async function sendMessage(){
+      if(!token) { appendMessage("bot","Please login first"); return; }
+      const projectName = projectInput.value;
+      const message = messageInput.value;
+      if(!message || !projectName) return alert("Enter project name and message");
+
+      appendMessage("user", "You: "+message);
+      messageInput.value = "";
+
+      const res = await fetch("http://localhost:3000/chat", {
+        method:"POST",
+        headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+        body: JSON.stringify({ message, projectName })
+      });
+      const data = await res.json();
+      appendMessage("bot", "Bot: " + (data.reply || data.error));
+    }
+
+    signupBtn.onclick = signup;
+    loginBtn.onclick = login;
+    createProjectBtn.onclick = createProject;
+    listProjectsBtn.onclick = listProjects;
+    sendBtn.onclick = sendMessage;
+    messageInput.addEventListener("keypress", e=>{if(e.key==="Enter") sendMessage();});
+  </script>
+</body>
+</html>
