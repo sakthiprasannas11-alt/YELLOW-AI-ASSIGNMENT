@@ -43,7 +43,8 @@
     const listProjectsBtn = document.getElementById("listProjects");
 
     let token = localStorage.getItem("jwtToken") || null;
-    const BACKEND_URL = "https://yellow-ai-backend.onrender.com"; // Hosted backend URL
+    const BACKEND_URL = "http://localhost:3000";
+ // Hosted backend URL
 
     function appendMessage(sender, text){
       const div = document.createElement("div");
@@ -125,4 +126,5 @@
   </script>
 </body>
 </html>
+
 
