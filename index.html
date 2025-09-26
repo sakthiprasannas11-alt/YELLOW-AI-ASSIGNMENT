@@ -43,6 +43,7 @@
     const listProjectsBtn = document.getElementById("listProjects");
 
     let token = localStorage.getItem("jwtToken") || null;
+    const BACKEND_URL = "https://yellow-ai-backend.onrender.com"; // Hosted backend URL
 
     function appendMessage(sender, text){
       const div = document.createElement("div");
@@ -54,7 +55,7 @@
 
     async function signup(){
       const email = emailInput.value, password = passwordInput.value;
-      const res = await fetch("http://localhost:3000/signup", {
+      const res = await fetch(`${BACKEND_URL}/signup`, {
         method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({ email, password })
       });
@@ -64,7 +65,7 @@
 
     async function login(){
       const email = emailInput.value, password = passwordInput.value;
-      const res = await fetch("http://localhost:3000/login", {
+      const res = await fetch(`${BACKEND_URL}/login`, {
         method:"POST", headers:{"Content-Type":"application/json"},
         body: JSON.stringify({ email, password })
       });
@@ -80,7 +81,7 @@
       if(!token) return alert("Login first");
       const name = projectInput.value;
       if(!name) return alert("Enter project name");
-      const res = await fetch("http://localhost:3000/projects", {
+      const res = await fetch(`${BACKEND_URL}/projects`, {
         method:"POST", headers:{"Content-Type":"application/json", "Authorization":"Bearer "+token},
         body: JSON.stringify({ projectName: name })
       });
@@ -90,7 +91,7 @@
 
     async function listProjects(){
       if(!token) return alert("Login first");
-      const res = await fetch("http://localhost:3000/projects", {
+      const res = await fetch(`${BACKEND_URL}/projects`, {
         headers: { "Authorization":"Bearer "+token }
       });
       const data = await res.json();
@@ -106,7 +107,7 @@
       appendMessage("user", "You: "+message);
       messageInput.value = "";
 
-      const res = await fetch("http://localhost:3000/chat", {
+      const res = await fetch(`${BACKEND_URL}/chat`, {
         method:"POST",
         headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
         body: JSON.stringify({ message, projectName })
@@ -124,3 +125,4 @@
   </script>
 </body>
 </html>
+
